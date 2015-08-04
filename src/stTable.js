@@ -1,5 +1,5 @@
 ng.module('smart-table')
-  .controller('stTableController', ['$scope', '$parse', '$filter', '$attrs', function StTableController ($scope, $parse, $filter, $attrs) {
+  .controller('stTableController', ['$scope', '$parse', '$filter', '$attrs', '$timeout', 'stConfig', function StTableController ($scope, $parse, $filter, $attrs, $timeout, config) {
     var propertyName = $attrs.stTable;
     var displayGetter = $parse(propertyName);
     var displaySetter = displayGetter.assign;
@@ -122,6 +122,8 @@ ng.module('smart-table')
         output = filtered.slice(pagination.start, pagination.start + parseInt(pagination.number));
       }
       displaySetter($scope, output || filtered);
+
+      notifyPipeCompleted();
     };
 
     /**
@@ -192,6 +194,36 @@ ng.module('smart-table')
     this.preventPipeOnWatch = function preventPipe () {
       pipeAfterSafeCopy = false;
     };
+
+    var registeredPipeCompletedCallbacks = [];
+
+    this.registerPipeCompletedCallback = function registerPipeCompletedCallback (callback) {
+      for(var i = 0; i < registeredPipeCompletedCallbacks.length; i++){
+        var registeredCallback = registeredPipeCompletedCallbacks[i];
+
+        if(registeredCallback === callback){
+          return;
+        }
+      }
+
+      registeredPipeCompletedCallbacks.push(callback);
+    };
+
+    var pipePromise = null;
+    function notifyPipeCompleted(){
+      if (pipePromise !== null) {
+        $timeout.cancel(pipePromise)
+      }
+
+      var throttle = config.pipe.delay || 100;
+
+      pipePromise = $timeout(function () {
+        angular.forEach(registeredPipeCompletedCallbacks, function(callback){
+          callback();
+        });
+        pipePromise = null;
+      }, throttle);
+    }
   }])
   .directive('stTable', function () {
     return {

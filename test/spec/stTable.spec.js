@@ -378,6 +378,92 @@ describe('st table Controller', function () {
         expect(selected).toEqual([scope.data[4]]);
       });
     });
+
+    describe('registerPipeCompletedCallback', function(){
+      var timeout;
+
+      beforeEach(inject(function($timeout){
+        timeout = $timeout;
+      }))
+
+      it('should call registered callback after pipe', function(done){
+        var callback = function(){
+          done();
+        };
+
+        ctrl.registerPipeCompletedCallback(callback);
+        ctrl.pipe();
+
+        timeout.flush();
+      });
+
+      it('should call multiple registered callbacks after pipe', function(done){
+        function verify(){
+          if(callback1.completed && callback2.completed){
+            done();
+          }
+        }
+
+        var callback1 = {
+          completed: false,
+          callback: function(){
+            callback1.completed = true;
+            verify();
+          }
+        };
+        var callback2 = {
+          completed: false,
+          callback: function(){
+            callback2.completed = true;
+            verify();
+          }
+        };
+
+        ctrl.registerPipeCompletedCallback(callback1.callback);
+        ctrl.registerPipeCompletedCallback(callback2.callback);
+        ctrl.pipe();
+
+        timeout.flush();
+      });
+
+      it('should call each callback only once', function(done){
+        var callback1 = {
+          completed: false,
+          callback: function(){
+            callback1.completed = true;
+            verify();
+          }
+        };
+        var callback2 = {
+          completed: false,
+          callback: function(){
+            callback2.completed = true;
+            verify();
+          }
+        };
+
+        spyOn(callback1, 'callback').and.callThrough();
+        spyOn(callback2, 'callback').and.callThrough();
+
+        ctrl.registerPipeCompletedCallback(callback1.callback);
+        ctrl.registerPipeCompletedCallback(callback1.callback); // double registration
+        ctrl.registerPipeCompletedCallback(callback2.callback);
+        ctrl.pipe();
+
+        timeout.flush();
+
+        function verify(){
+          if(callback1.completed && callback2.completed){
+            expect(callback1.callback).toHaveBeenCalled();
+            expect(callback1.callback.calls.count()).toEqual(1);
+            expect(callback2.callback).toHaveBeenCalled();
+            expect(callback2.callback.calls.count()).toEqual(1);
+
+            done();
+          }
+        }
+      });
+    })
   });
 
   describe('with safeSrc', function () {
