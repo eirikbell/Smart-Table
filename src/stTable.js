@@ -1,5 +1,5 @@
 ng.module('smart-table')
-  .controller('stTableController', ['$scope', '$parse', '$filter', '$attrs', 'stConfig', function StTableController ($scope, $parse, $filter, $attrs, config) {
+  .controller('stTableController', ['$scope', '$parse', '$filter', '$attrs', '$timeout', 'stConfig', function StTableController ($scope, $parse, $filter, $attrs, $timeout, config) {
     var propertyName = $attrs.stTable;
     var displayGetter = $parse(propertyName);
     var displaySetter = displayGetter.assign;
@@ -195,10 +195,20 @@ ng.module('smart-table')
       pipeAfterSafeCopy = false;
     };
 
+    var pipePromise = null;
     function notifyPipeCompleted(){
-      var eventName = config.pipe.completedEvent;
+      if (pipePromise !== null){
+        $timeout.cancel(pipePromise);
+      }
 
-      $scope.$broadcast(eventName);
+      var throttle = config.pipe.delay || 100;
+
+      pipePromise = $timeout(function(){
+        var eventName = config.pipe.completedEvent;
+        $scope.$broadcast(eventName);
+
+        pipePromise = null;
+      }, throttle);
     }
   }])
   .directive('stTable', function () {

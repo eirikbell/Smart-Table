@@ -381,9 +381,11 @@ describe('st table Controller', function () {
 
     describe('pipe completed notification', function(){
       var config;
+      var timeout;
 
-      beforeEach(inject(function(stConfig){
+      beforeEach(inject(function(stConfig, $timeout){
         config = stConfig;
+        timeout = $timeout;
       }));
 
       it('should broadcast event when pipe is called', function(done){
@@ -392,6 +394,8 @@ describe('st table Controller', function () {
         });
 
         ctrl.pipe();
+
+        timeout.flush();
       });
     });
   });
