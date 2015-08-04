@@ -1,5 +1,5 @@
 ng.module('smart-table')
-  .controller('stTableController', ['$scope', '$parse', '$filter', '$attrs', function StTableController ($scope, $parse, $filter, $attrs) {
+  .controller('stTableController', ['$scope', '$parse', '$filter', '$attrs', 'stConfig', function StTableController ($scope, $parse, $filter, $attrs, config) {
     var propertyName = $attrs.stTable;
     var displayGetter = $parse(propertyName);
     var displaySetter = displayGetter.assign;
@@ -122,6 +122,8 @@ ng.module('smart-table')
         output = filtered.slice(pagination.start, pagination.start + parseInt(pagination.number));
       }
       displaySetter($scope, output || filtered);
+
+      notifyPipeCompleted();
     };
 
     /**
@@ -192,6 +194,12 @@ ng.module('smart-table')
     this.preventPipeOnWatch = function preventPipe () {
       pipeAfterSafeCopy = false;
     };
+
+    function notifyPipeCompleted(){
+      var eventName = config.pipe.completedEvent;
+
+      $scope.$broadcast(eventName);
+    }
   }])
   .directive('stTable', function () {
     return {

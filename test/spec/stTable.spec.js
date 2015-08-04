@@ -378,6 +378,22 @@ describe('st table Controller', function () {
         expect(selected).toEqual([scope.data[4]]);
       });
     });
+
+    describe('pipe completed notification', function(){
+      var config;
+
+      beforeEach(inject(function(stConfig){
+        config = stConfig;
+      }));
+
+      it('should broadcast event when pipe is called', function(done){
+        scope.$on(config.pipe.completedEvent, function(){
+          done();
+        });
+
+        ctrl.pipe();
+      });
+    });
   });
 
   describe('with safeSrc', function () {

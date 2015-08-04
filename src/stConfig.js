@@ -19,6 +19,7 @@ ng.module('smart-table')
       skipNatural: false
     },
     pipe: {
-      delay: 100 //ms
+      delay: 100, //ms
+      completedEvent: 'stPipe.completed'
     }
   });
